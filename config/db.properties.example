@@ -1,0 +1,6 @@
+# MySQL Database Configuration
+# Copy this file to config/db.properties and set your local MySQL credentials.
+
+db.url=jdbc:mysql://localhost:3306/task_allocator_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true
+db.user=root
+db.password=your_mysql_password_here

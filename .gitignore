@@ -1,0 +1,17 @@
+# Eclipse and Java build outputs
+bin/
+*.class
+*.jar
+!lib/*.jar
+
+# IDE specific files
+.settings/
+*.log
+
+# Sensitive credentials
+config/db.properties
+
+# OS generated files
+Thumbs.db
+Desktop.ini
+.DS_Store
