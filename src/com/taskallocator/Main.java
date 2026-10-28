@@ -1,30 +1,34 @@
 package com.taskallocator;
 
-import com.taskallocator.gui.LoginFrame;
+import com.taskallocator.gui.MainFrame;
 import com.taskallocator.util.DBConnection;
 
 import javax.swing.*;
 
 /**
- * Application entry point for Project Task & Collaboration Allocator.
- * Initializes database configuration and launches the Swing GUI on the Event Dispatch Thread (EDT).
+ * =====================================================================
+ * Application Entry Point: Project Task & Collaboration Allocator
+ * =====================================================================
+ * Initializes database configuration and launches the simplified Swing
+ * desktop application directly to the main workspace window on the
+ * Event Dispatch Thread (EDT).
  */
 public class Main {
 
     public static void main(String[] args) {
-        // Initialize DB configuration
+        // Initialize DB configuration from config/db.properties
         DBConnection.loadConfiguration();
 
-        // Use system look and feel for native OS appearance where supported
+        // Use system look and feel for native OS appearance
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) {
         }
 
-        // Launch GUI strictly on Event Dispatch Thread (EDT)
+        // Launch MainFrame directly on the Swing Event Dispatch Thread (EDT)
         SwingUtilities.invokeLater(() -> {
-            LoginFrame loginFrame = new LoginFrame();
-            loginFrame.setVisible(true);
+            MainFrame mainFrame = new MainFrame();
+            mainFrame.setVisible(true);
         });
     }
 }

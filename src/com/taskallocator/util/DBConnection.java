@@ -1,7 +1,5 @@
 package com.taskallocator.util;
 
-import com.taskallocator.exception.DatabaseException;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -12,9 +10,12 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 /**
- * Manages JDBC connections to the MySQL database.
- * Supports configurable connection properties from config/db.properties,
- * environment variables, or fallback local development defaults.
+ * =====================================================================
+ * Member 2 Responsibility: Database Foundation & JDBC Configuration
+ * =====================================================================
+ * DBConnection provides a centralized way to obtain JDBC connections
+ * to the MySQL database. It reads database credentials from config/db.properties
+ * and returns standard java.sql.Connection objects.
  */
 public final class DBConnection {
 
@@ -27,9 +28,11 @@ public final class DBConnection {
     private static String user;
     private static String password;
 
+    // Static block executes once when the class is loaded into memory
     static {
         loadConfiguration();
         try {
+            // Register MySQL JDBC Driver
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
             System.err.println("[DBConnection] MySQL Connector/J driver class not found in classpath.");
@@ -37,15 +40,11 @@ public final class DBConnection {
     }
 
     private DBConnection() {
-        // Prevent instantiation of utility class
+        // Private constructor prevents direct instantiation of utility class
     }
 
     /**
-     * Loads database credentials with progressive fallback:
-     * 1. config/db.properties file (local file system)
-     * 2. Classpath resource db.properties
-     * 3. Environment variables (DB_URL, DB_USER, DB_PASSWORD)
-     * 4. Safe default local development credentials
+     * Reads database connection settings from config/db.properties.
      */
     public static synchronized void loadConfiguration() {
         Properties props = new Properties();
@@ -57,50 +56,28 @@ public final class DBConnection {
             } catch (IOException e) {
                 System.err.println("[DBConnection] Warning: Could not read config/db.properties: " + e.getMessage());
             }
-        } else {
-            try (InputStream in = DBConnection.class.getClassLoader().getResourceAsStream("db.properties")) {
-                if (in != null) {
-                    props.load(in);
-                }
-            } catch (IOException ignored) {
-            }
         }
 
-        url = System.getenv("DB_URL");
-        if (url == null || url.trim().isEmpty()) {
-            url = props.getProperty("db.url", DEFAULT_URL);
-        }
-
-        user = System.getenv("DB_USER");
-        if (user == null || user.trim().isEmpty()) {
-            user = props.getProperty("db.user", DEFAULT_USER);
-        }
-
-        password = System.getenv("DB_PASSWORD");
-        if (password == null) {
-            password = props.getProperty("db.password", DEFAULT_PASSWORD);
-        }
+        url = props.getProperty("db.url", DEFAULT_URL);
+        user = props.getProperty("db.user", DEFAULT_USER);
+        password = props.getProperty("db.password", DEFAULT_PASSWORD);
     }
 
     /**
-     * Obtains a new JDBC connection from DriverManager.
+     * Establishes and returns a live connection to the MySQL database.
+     * Uses standard java.sql.SQLException so callers can handle database errors easily.
      *
-     * @return a valid active Connection object
-     * @throws DatabaseException if connection fails
+     * @return an active java.sql.Connection object
+     * @throws SQLException if a database access error occurs
      */
-    public static Connection getConnection() throws DatabaseException {
-        try {
-            return DriverManager.getConnection(url, user, password);
-        } catch (SQLException e) {
-            throw new DatabaseException("Failed to connect to MySQL database at: " + url + 
-                " (User: " + user + "). Ensure MySQL is running and credentials in config/db.properties are correct.", e);
-        }
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(url, user, password);
     }
 
     /**
-     * Safely closes one or more JDBC/I/O resources.
+     * Helper method to safely close JDBC resources (Connection, Statement, ResultSet).
      *
-     * @param resources AutoCloseable resources (Connection, Statement, ResultSet, etc.)
+     * @param resources AutoCloseable objects to close
      */
     public static void close(AutoCloseable... resources) {
         if (resources == null) return;
@@ -115,16 +92,13 @@ public final class DBConnection {
     }
 
     /**
-     * Quick test utility to verify connectivity.
+     * Quick test method to verify database connectivity.
      *
-     * @return true if connection succeeded, false otherwise
+     * @return true if connected successfully, false otherwise
      */
     public static boolean testConnection() {
         try (Connection conn = getConnection()) {
             return conn != null && !conn.isClosed();
-        } catch (DatabaseException e) {
-            System.err.println("[DBConnection Test Failed] " + e.getMessage());
-            return false;
         } catch (SQLException e) {
             System.err.println("[DBConnection Test Failed] " + e.getMessage());
             return false;
